@@ -86,7 +86,7 @@ httpsServer.listen(PORT, async () => {
       json: true
   }
   await sendRequest(options)
-  console.log(`Server running https://parser.kupuy.top:${PORT}`)
+  console.log(`Server running https://localhost:${PORT}`)
 })
 
 const es = require('event-stream');
