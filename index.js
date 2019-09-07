@@ -7,10 +7,11 @@ const sendRequest = require('./request').sendRequest
 const app = express()
 var fs = require('fs')
 var https = require('https')
-var privateKey  = fs.readFileSync('sslcert/privkey.pem', 'utf8');
-var certificate = fs.readFileSync('sslcert/cert.pem', 'utf8');
+var privateKey  = fs.readFileSync('sslcert/privkey.pem')
+var certificate = fs.readFileSync('sslcert/cert.pem')
+var ca = fs.readFileSync('sslcert/chain.pem')
 
-var credentials = {key: privateKey, cert: certificate};
+var credentials = {key: privateKey, cert: certificate, ca: ca}
 
 // your express configuration here
 
@@ -32,6 +33,10 @@ const pool = new Pool({
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+
+app.get('/', (req, res) => {
+  res.end('Hello')
+})
 
 app.get('/triger', async (req, res) => {
   pool.query(`select phone from phones limit 100;`, async (err, result) => {
@@ -66,7 +71,7 @@ httpsServer.listen(PORT, async () => {
       },
       url: setWebhookLink,
       body: {
-        url: "https://localhost:3000",
+        url: "https://parser.kupuy.top",
         event_types: [
           "delivered",
           "seen",
@@ -81,7 +86,7 @@ httpsServer.listen(PORT, async () => {
       json: true
   }
   await sendRequest(options)
-  console.log(`Server running http://localhost:${PORT}`)
+  console.log(`Server running https://parser.kupuy.top:${PORT}`)
 })
 
 const es = require('event-stream');
