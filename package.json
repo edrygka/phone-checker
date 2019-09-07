@@ -1,0 +1,21 @@
+{
+  "name": "numberchecker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eduard",
+  "license": "ISC",
+  "dependencies": {
+    "event-stream": "^4.0.1",
+    "express": "^4.17.1",
+    "https": "^1.0.0",
+    "pg": "^7.12.1",
+    "pg-promise": "^9.1.2",
+    "request": "^2.88.0",
+    "telegram-api-js": "^1.2.9",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.11.0"
+  }
+}
