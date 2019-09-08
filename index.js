@@ -35,7 +35,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
 app.get('/', (req, res) => {
-  res.end('Hello')
+  res.end('test viber api server')
 })
 
 app.get('/triger', async (req, res) => {
@@ -59,11 +59,7 @@ app.get('/triger', async (req, res) => {
     //}
   })
 })
-app.post('/file', (req, res) => {
-
-})
-
-httpsServer.listen(PORT, async () => {
+app.get('/webhook', async (req, res) => {
   const options = {
     method: 'POST',
       headers: {
@@ -71,21 +67,15 @@ httpsServer.listen(PORT, async () => {
       },
       url: setWebhookLink,
       body: {
-        url: "https://parser.kupuy.top",
-        event_types: [
-          "delivered",
-          "seen",
-          "failed",
-          "subscribed",
-          "unsubscribed",
-          "conversation_started"
-        ],
-        send_name: true,
-        send_photo: true
+        url: `https://parser.kupuy.top:${PORT}/webhook`
       },
       json: true
   }
   await sendRequest(options)
+  res.send('ok') 
+})
+
+httpsServer.listen(PORT, async () => {
   console.log(`Server running https://localhost:${PORT}`)
 })
 
