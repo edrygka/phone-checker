@@ -95,7 +95,7 @@ app.get('/turn', async (req, res) => {
       },
       url: setWebhookLink,
       body: {
-        url: `https://parser.kupuy.top:${PORT}/`
+        url: `https://parser.kupuy.top:${PORT}/webhook`
       },
       json: true
   }
