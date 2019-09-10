@@ -126,7 +126,7 @@ app.post('/file/upload', (req, res) => {
   req.pipe(req.busboy)
   req.busboy.on('file', function (_fieldname, file, filename) {
     console.log("Uploading: " + filename)
-    fstream = fs.createWriteStream(__dirname + '/file/' + filename)
+    fstream = fs.createWriteStream(__dirname + '/files/' + filename)
     file.pipe(fstream)
     fstream.on('close', function () {
       console.log('File uploaded')
