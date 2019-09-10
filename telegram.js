@@ -1,13 +1,13 @@
 'use strict'
 
-const express = require('express');
-const app = express();
+const tg = require('telegram-api-js/dist/telegramApi.js')
 
-app.use((req, res) => {
-  console.log(`${req.method}: ${req.url}`);
-  res.send('OK');
-});
+tg.setConfig({
+  app: {
+    id: 1165641, /* App ID */
+    hash: 'ebbac2245a1cd2e81a9f1b4cab9f4bbd', /* App hash */
+    version: '0.0.0' /* App version */
+  }
+})
 
-app.listen(8000, '0.0.0.0', () => {
-  console.log('Listen on *:8000');
-});
+tg.getUserInfo()

@@ -2,6 +2,7 @@
 
 const bodyParser = require('body-parser')
 const express = require('express')
+const busboy = require('connect-busboy')
 const Pool = require('pg').Pool
 const sendRequest = require('./request').sendRequest
 const app = express()
@@ -13,10 +14,7 @@ var ca = fs.readFileSync('sslcert/chain.pem')
 
 var credentials = {key: privateKey, cert: certificate, ca: ca}
 
-// your express configuration here
-
-var httpsServer = https.createServer(credentials, app);
-
+var httpsServer = https.createServer(credentials, app)
 
 const PORT = 3000
 const VIBER_API = '4a4051bb8fe7d12f-c5546735a11b689b-7dbc384f693d817c'
@@ -31,14 +29,23 @@ const pool = new Pool({
   port: 5432,
 })
 
+app.use(busboy())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
-app.get('/', (req, res) => {
-  res.end('test viber api server')
+app.get('/webhook', (req, res) => {
+  res.status(200).end('test viber api server')
 })
 
-app.get('/triger', async (req, res) => {
+app.post('/webhook', (req, res) => {
+  res.status(200).end()
+})
+
+app.get('/', (req, res) => {
+  res.redirect('/main')
+})
+
+app.get('/check/viber', async (req, res) => {
   pool.query(`select phone from phones limit 100;`, async (err, result) => {
     const phones = result.rows.map((value, index) => {
       return value.phone + '='
@@ -59,7 +66,28 @@ app.get('/triger', async (req, res) => {
     //}
   })
 })
-app.get('/webhook', async (req, res) => {
+
+app.get('/main', (_req, res) => {
+  res.sendFile(__dirname + '/views/main.html')
+})
+
+app.post('/upload/file', (req, res) => {
+  var fstream
+  req.pipe(req.busboy)
+  req.busboy.on('file', function (_fieldname, file, filename) {
+    console.log("Uploading: " + filename)
+    fstream = fs.createWriteStream(__dirname + '/file/' + filename)
+    file.pipe(fstream)
+    fstream.on('close', function () {
+      console.log('File uploaded')
+      res.send({
+        file_size: req.busboy.opts.headers['content-length']
+      })
+    })
+  })
+})
+
+app.get('/turn', async (req, res) => {
   const options = {
     method: 'POST',
       headers: {
@@ -67,7 +95,7 @@ app.get('/webhook', async (req, res) => {
       },
       url: setWebhookLink,
       body: {
-        url: `https://parser.kupuy.top:${PORT}/webhook`
+        url: `https://parser.kupuy.top:${PORT}/`
       },
       json: true
   }

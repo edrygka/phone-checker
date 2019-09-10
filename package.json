@@ -9,6 +9,7 @@
   "author": "Eduard",
   "license": "ISC",
   "dependencies": {
+    "connect-busboy": "0.0.2",
     "event-stream": "^4.0.1",
     "express": "^4.17.1",
     "https": "^1.0.0",
