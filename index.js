@@ -3,6 +3,9 @@
 const bodyParser = require('body-parser')
 const express = require('express')
 const busboy = require('connect-busboy')
+const es = require('event-stream')
+const io = require('socket.io')
+const socket = io()
 const Pool = require('pg').Pool
 const sendRequest = require('./request').sendRequest
 const app = express()
@@ -71,7 +74,54 @@ app.get('/main', (_req, res) => {
   res.sendFile(__dirname + '/views/main.html')
 })
 
-app.post('/upload/file', (req, res) => {
+app.post('/file/parse', (req, res) => {
+  const files = fs.readdirSync(__dirname + '/files')
+  var lineNr = 0
+  var s = fs.createReadStream('files/' + files[0])
+    .pipe(es.split())
+    .pipe(es.mapSync(async function(line){
+      // pause the readstream
+      s.pause()
+
+      lineNr += 1
+      const phone = line.replace(/\s/g, '')
+      const p = new Promise((resolve, reject) => {
+        pool.query(`insert into phones(phone) values (${phone}) on conflict (phone) do nothing;`, (error, results) => {
+          if (error) reject(error)
+
+          resolve(results)
+        })
+      })
+      try {
+        await p
+      } catch(err){
+        console.log(err)
+
+        return res.send({
+          status: 1,
+          message: err.message
+        })
+      }
+      socket.emit('parsing-status', lineNr)
+
+      s.resume()
+    })
+    .on('error', function(err){
+        console.log('Error while reading file.', err)
+        return res.send({
+          status: 1,
+          message: err.message
+        })
+    })
+    .on('end', function(){
+        console.log('Read entire file.')
+        return res.send({
+          status: 0
+        })
+    }))
+})
+
+app.post('/file/upload', (req, res) => {
   var fstream
   req.pipe(req.busboy)
   req.busboy.on('file', function (_fieldname, file, filename) {
@@ -107,45 +157,6 @@ httpsServer.listen(PORT, async () => {
   console.log(`Server running https://localhost:${PORT}`)
 })
 
-const es = require('event-stream');
-
-var lineNr = 0;
-
-// var s = fs.createReadStream('050.txt')
-//     .pipe(es.split())
-//     .pipe(es.mapSync(async function(line){
-
-//         // pause the readstream
-//         s.pause();
-
-//         lineNr += 1;
-//         line = line.replace(/\s/g, '')
-//         const p = new Promise((resolve, reject) => {
-//           pool.query(`insert into phones(phone) values (${line});`, (error, results) => {
-//             if (error) reject(error)
-//             console.log(lineNr, results.rows)
-//             resolve(results)
-//           })
-//         })
-//         try {
-//           await p
-//         } catch(err){
-//           console.log(err)
-//         }
-
-//         // process line here and call s.resume() when rdy
-//         // function below was for logging memory usage
-//         //logMemoryUsage(lineNr);
-
-//         // resume the readstream, possibly from a callback
-//         s.resume();
-//     })
-//     .on('error', function(err){
-//         console.log('Error while reading file.', err);
-//     })
-//     .on('end', function(){
-//         console.log('Read entire file.')
-//     })
-// );
+socket.listen(httpsServer)
 
 
