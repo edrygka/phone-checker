@@ -22,6 +22,7 @@ var httpsServer = https.createServer(credentials, app)
 
 const port = process.env.PORT
 const host = process.env.HOST
+const externalHost = process.env.EXTERNAL_HOST
 const VIBER_API_TOKEN = process.env.VIBER_API_TOKEN
 const viberLink = 'https://chatapi.viber.com/pa/get_online'
 const setWebhookLink = 'https://chatapi.viber.com/pa/set_webhook'
@@ -149,7 +150,7 @@ app.get('/turn', async (req, res) => {
       },
       url: setWebhookLink,
       body: {
-        url: `https://${host}:${port}/webhook`
+        url: `https://${externalHost}:${port}/webhook`
       },
       json: true
   }
@@ -158,7 +159,7 @@ app.get('/turn', async (req, res) => {
 })
 
 httpsServer.listen(port, host, async () => {
-  console.log(`Server running https://${host}:${port}`)
+  console.log(`Server running https://${externalHost}:${port}`)
 })
 
 socket.listen(httpsServer)
