@@ -79,9 +79,21 @@ app.get('/main', (_req, res) => {
   res.sendFile(__dirname + '/views/main.html')
 })
 
+app.get('/files', (req, res) => {
+  const files = fs.readdirSync(__dirname + '/files')
+  const result = files.map((value) => {
+    return {
+      file_name: value.substring(0, value.indexOf('_')) + '.txt',
+      file_size: value.substring(value.indexOf('_') + 1, value.indexOf('bytes'))
+    }
+  })
+  return res.status(200).json(result)
+})
+
 app.post('/file/parse', (req, res) => {
   const files = fs.readdirSync(__dirname + '/files')
   var lineNr = 0
+  socket.emit('start', files[0])
   var s = fs.createReadStream('files/' + files[0])
     .pipe(es.split())
     .pipe(es.mapSync(async function(line){
@@ -90,6 +102,9 @@ app.post('/file/parse', (req, res) => {
 
       lineNr += 1
       const phone = line.replace(/\s/g, '')
+      if (phone.length === 0) {
+        return s.emit('end')
+      }
       const p = new Promise((resolve, reject) => {
         pool.query(`insert into phones(phone) values (${phone}) on conflict (phone) do nothing;`, (error, results) => {
           if (error) reject(error)
@@ -131,7 +146,10 @@ app.post('/file/upload', (req, res) => {
   req.pipe(req.busboy)
   req.busboy.on('file', function (_fieldname, file, filename) {
     console.log("Uploading: " + filename)
-    fstream = fs.createWriteStream(__dirname + '/files/' + filename)
+    const f = filename.substring(0, filename.indexOf('.'))
+    const s = filename.substr(filename.indexOf('.'))
+    const fileName = f + '_' + req.busboy.opts.headers['content-length'] + 'bytes' + s
+    fstream = fs.createWriteStream(__dirname + '/files/' + fileName)
     file.pipe(fstream)
     fstream.on('close', function () {
       console.log('File uploaded')
