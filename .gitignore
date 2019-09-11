@@ -1,2 +1,4 @@
 node_modules
 *.txt
+views/js/config.js.html
+.env
