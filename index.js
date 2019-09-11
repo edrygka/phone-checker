@@ -6,6 +6,7 @@ const busboy = require('connect-busboy')
 const es = require('event-stream')
 const io = require('socket.io')
 const socket = io()
+require('dotenv').config()
 const Pool = require('pg').Pool
 const sendRequest = require('./request').sendRequest
 const app = express()
@@ -19,22 +20,24 @@ var credentials = {key: privateKey, cert: certificate, ca: ca}
 
 var httpsServer = https.createServer(credentials, app)
 
-const PORT = 3000
-const VIBER_API = '4a4051bb8fe7d12f-c5546735a11b689b-7dbc384f693d817c'
+const port = process.env.PORT
+const host = process.env.HOST
+const VIBER_API_TOKEN = process.env.VIBER_API_TOKEN
 const viberLink = 'https://chatapi.viber.com/pa/get_online'
 const setWebhookLink = 'https://chatapi.viber.com/pa/set_webhook'
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'phones',
-  password: '1111',
-  port: 5432,
+  user: process.env.USER_DB,
+  host: process.env.HOST_DB,
+  database: process.env.NAME_DB,
+  password: process.env.PASSWORD_DB,
+  port: process.env.PORT_DB,
 })
 
 app.use(busboy())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.static('views'))
 
 app.get('/webhook', (req, res) => {
   res.status(200).end('test viber api server')
@@ -56,7 +59,7 @@ app.get('/check/viber', async (req, res) => {
     const options = {
       method: 'POST',
       headers: {
-        'X-Viber-Auth-Token': VIBER_API
+        'X-Viber-Auth-Token': VIBER_API_TOKEN
       },
       url: viberLink,
       body: {
@@ -65,8 +68,9 @@ app.get('/check/viber', async (req, res) => {
       json: true
     }
     // for (let i = 0; i < 100; i++) {
-      await sendRequest(options)
+      const response = await sendRequest(options)
     //}
+    res.status(200).end(response)
   })
 })
 
@@ -141,20 +145,20 @@ app.get('/turn', async (req, res) => {
   const options = {
     method: 'POST',
       headers: {
-        'X-Viber-Auth-Token': VIBER_API
+        'X-Viber-Auth-Token': VIBER_API_TOKEN
       },
       url: setWebhookLink,
       body: {
-        url: `https://parser.kupuy.top:${PORT}/webhook`
+        url: `https://${host}:${port}/webhook`
       },
       json: true
   }
   await sendRequest(options)
-  res.send('ok') 
+  res.send('ok')
 })
 
-httpsServer.listen(PORT, async () => {
-  console.log(`Server running https://localhost:${PORT}`)
+httpsServer.listen(port, host, async () => {
+  console.log(`Server running https://${host}:${port}`)
 })
 
 socket.listen(httpsServer)
