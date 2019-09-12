@@ -1,6 +1,7 @@
 'use strict'
 
 const db = require('../db/db').db
+const sendRequest = require('../request').sendRequest
 
 process.on('message', msg => {
   if (msg.indexOf('start') !== -1) {
