@@ -71,6 +71,7 @@ app.get('/main', (_req, res) => {
 
 app.get('/files', (req, res) => {
   const files = fs.readdirSync(__dirname + '/files')
+  socket.emit('file-to-parse', files[0])
   const result = files.map((value) => {
     return {
       file_name: value.substring(0, value.indexOf('_')) + '.txt',
@@ -83,7 +84,7 @@ app.get('/files', (req, res) => {
 app.post('/file/parse', (req, res) => {
   const files = fs.readdirSync(__dirname + '/files')
   var lineNr = 0
-  socket.emit('start', files[0])
+
   var s = fs.createReadStream('files/' + files[0])
     .pipe(es.split())
     .pipe(es.mapSync(async function(line){

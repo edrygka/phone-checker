@@ -13,6 +13,10 @@
     socket.on('parsing-status', value => {
       document.getElementById('parse-file-value').innerText = 'Телефонов считано:' + value
     })
+    socket.on('file-to-parse', fileName => {
+      console.log(fileName)
+      document.getElementById('button-parse').innerText = `Спарсить ${fileName.substring(0, fileName.indexOf('_'))}.txt`
+    })
     socket.on('viber-all-count', allViberCount => {
       document.getElementById('viber-all-count').innerText = `Количество прочеканых пользователей: ${allViberCount}`
     })
@@ -112,7 +116,7 @@
       <div id="profile-info" class="col-sm-6">
         <div class="well">
           <h3><span class="fa fa-gear"></span> Парсинг файла</h3>
-          <button class="btn btn-primary btn-sm" onclick="parseFile();"> Спарсить </button><br>
+          <button id='button-parse' class="btn btn-primary btn-sm" onclick="parseFile();"> Спарсить </button><br>
           <div class="form-group">
             <span id='parse-file-status'>Статус: </span><br>
             <span id='parse-file-value'> </span>
