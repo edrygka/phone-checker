@@ -13,7 +13,7 @@ const sendRequest = (options) => {
         console.log(body)
         resolve(body)
       })
-    }, 10000) // set delay 10 sec
+    }, 30000) // set delay 30 sec
   })
 }
 
