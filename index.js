@@ -7,11 +7,11 @@ const es = require('event-stream')
 const io = require('socket.io')
 const socket = io()
 require('dotenv').config()
-const Pool = require('pg').Pool
 const sendRequest = require('./request').sendRequest
 const app = express()
 var fs = require('fs')
 var https = require('https')
+const { fork } = require('child_process')
 var privateKey  = fs.readFileSync('sslcert/privkey.pem')
 var certificate = fs.readFileSync('sslcert/cert.pem')
 var ca = fs.readFileSync('sslcert/chain.pem')
@@ -24,16 +24,9 @@ const port = process.env.PORT
 const host = process.env.HOST
 const externalHost = process.env.EXTERNAL_HOST
 const VIBER_API_TOKEN = process.env.VIBER_API_TOKEN
-const viberLink = 'https://chatapi.viber.com/pa/get_online'
 const setWebhookLink = 'https://chatapi.viber.com/pa/set_webhook'
 
-const pool = new Pool({
-  user: process.env.USER_DB,
-  host: process.env.HOST_DB,
-  database: process.env.NAME_DB,
-  password: process.env.PASSWORD_DB,
-  port: process.env.PORT_DB,
-})
+const db = require('./db/db').db
 
 app.use(busboy())
 app.use(bodyParser.json())
@@ -52,27 +45,22 @@ app.get('/', (req, res) => {
   res.redirect('/main')
 })
 
-app.get('/check/viber', async (req, res) => {
-  pool.query(`select phone from phones limit 100;`, async (err, result) => {
-    const phones = result.rows.map((value, index) => {
-      return value.phone + '='
-    })
-    const options = {
-      method: 'POST',
-      headers: {
-        'X-Viber-Auth-Token': VIBER_API_TOKEN
-      },
-      url: viberLink,
-      body: {
-        ids: phones
-      },
-      json: true
-    }
-    // for (let i = 0; i < 100; i++) {
-      const response = await sendRequest(options)
-    //}
-    res.status(200).end(response)
+// app.get('/check/viber/stop', async (req, res) => {
+  
+//   checker.kill('SIGTERM')
+//   res.status(200).end('response')
+// })
+
+app.get('/check/viber/start', async (req, res) => {
+  const checker = fork('./processes/checker.js')
+
+  checker.on('message', msg => {
+    console.log('Main thread got from child: ' + msg)
   })
+
+  checker.send('start limit 50 offset 50')
+  
+  res.status(200).end('response')
 })
 
 app.get('/main', (_req, res) => {
@@ -106,7 +94,7 @@ app.post('/file/parse', (req, res) => {
         return s.emit('end')
       }
       const p = new Promise((resolve, reject) => {
-        pool.query(`insert into phones(phone) values (${phone}) on conflict (phone) do nothing;`, (error, results) => {
+        db.query(`insert into phones(phone) values (${phone}) on conflict (phone) do nothing;`, (error, results) => {
           if (error) reject(error)
 
           resolve(results)

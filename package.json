@@ -9,6 +9,7 @@
   "author": "Eduard",
   "license": "ISC",
   "dependencies": {
+    "child_process": "^1.0.2",
     "connect-busboy": "0.0.2",
     "dotenv": "^8.1.0",
     "event-stream": "^4.0.1",
