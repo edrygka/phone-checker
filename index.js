@@ -4,8 +4,7 @@ const bodyParser = require('body-parser')
 const express = require('express')
 const busboy = require('connect-busboy')
 const es = require('event-stream')
-const io = require('socket.io')
-const socket = io()
+const socket = require('./modules/socket')
 require('dotenv').config()
 const sendRequest = require('./request').sendRequest
 const app = express()
@@ -26,7 +25,7 @@ const externalHost = process.env.EXTERNAL_HOST
 const VIBER_API_TOKEN = process.env.VIBER_API_TOKEN
 const setWebhookLink = 'https://chatapi.viber.com/pa/set_webhook'
 
-const db = require('./db/db').db
+const db = require('./modules/db')
 
 app.use(busboy())
 app.use(bodyParser.json())
@@ -51,16 +50,19 @@ app.get('/', (req, res) => {
 //   res.status(200).end('response')
 // })
 
-app.get('/check/viber/start', async (req, res) => {
+app.post('/check/viber/start/:limit', async (req, res) => {
   const checker = fork('./processes/checker.js')
+  const limit = req.params.limit
 
   checker.on('message', msg => {
     console.log('Main thread got from child: ' + msg)
+    if (msg === 'finished') res.status(200)
+    if (msg.indexOf('viber-all-count') !== -1) socket.emit('viber-all-count', msg.substr(16))
+    if (msg.indexOf('viber-valid-count') !== -1) socket.emit('viber-valid-count', msg.substr(18))
+    if (msg.indexOf('viber-check-error') !== -1) socket.emit('viber-check-error', msg.substr(18))
   })
 
-  checker.send('start limit 50 offset 50')
-  
-  res.status(200).end('response')
+  checker.send(`start limit=${limit}`)
 })
 
 app.get('/main', (_req, res) => {

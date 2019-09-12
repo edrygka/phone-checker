@@ -13,6 +13,16 @@
     socket.on('parsing-status', value => {
       document.getElementById('parse-file-value').innerText = 'Телефонов считано:' + value
     })
+    socket.on('viber-all-count', allViberCount => {
+      document.getElementById('viber-all-count').innerText = `Количество прочеканых пользователей: ${allViberCount}`
+    })
+    socket.on('viber-valid-count', validViberCount => {
+      document.getElementById('viber-valid-count').innerText = `Количество активных пользователей: ${validViberCount}`
+    })
+    socket.on('viber-check-error', message => {
+      document.getElementById('viber-check-error').innerText = `Статус запроса: ${message}`
+    })
+
     document.addEventListener("DOMContentLoaded", async () => {
       const response = await fetch(`https://${EXTERNAL_HOST}:${PORT}/files`)
       const data = await response.json()
@@ -54,9 +64,9 @@
     }
 
     async function checkViber(){
-      fetch(`https://${EXTERNAL_HOST}:${PORT}/check/viber`).then(result => {
-
-      })
+      const limit = document.getElementById('patch-size').value
+      const response = await fetch(`https://${EXTERNAL_HOST}:${PORT}/check/viber/start/${limit}`, {method: 'POST'})
+      const data = await response.json()
     }
 
     async function checkTg(){
@@ -112,7 +122,13 @@
       <div id="profile-info" class="col-sm-6">
         <div class="well">
           <h3><span class="fa fa-gear"></span> Проверить номера из файла</h3>
-          <button class="btn btn-primary btn-sm" onclick="checkViber();"> Проверить viber</button>
+          <div class="form-group">
+            <strong>Размера патча</strong><input class="form-control" id="patch-size" value="20">
+            <button class="btn btn-primary btn-sm" onclick="checkViber();"> Проверить viber</button><br>
+            <span id='viber-all-count'>Количество прочеканых пользователей: 0</span><br>
+            <span id='viber-valid-count'>Количество активных пользователей: 0</span><br>
+            <span id='viber-check-error'>Статус запроса: </span><br>
+          </div>
           <button class="btn btn-primary btn-sm" onclick="checkTg();"> Проверить telegram</button><br>
           <strong>Статус</strong> : <label id="balance"> </label> <br>
         </div>

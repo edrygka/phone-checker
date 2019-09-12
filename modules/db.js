@@ -10,6 +10,4 @@ const pool = new Pool({
   port: process.env.PORT_DB,
 })
 
-module.exports = {
-  db: pool
-}
+module.exports = pool
