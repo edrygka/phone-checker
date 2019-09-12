@@ -2,7 +2,7 @@
 
 const request = require('request')
 
-const sendRequest = (options) => {
+const sendRequest = (options, delay) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       request(options, (err, response, body) => {
@@ -10,10 +10,9 @@ const sendRequest = (options) => {
           console.log(err)
           reject(err)
         }
-        console.log(body)
         resolve(body)
       })
-    }, 60000) // set delay 1 min
+    }, delay || 1000)
   })
 }
 

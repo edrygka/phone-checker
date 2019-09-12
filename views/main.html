@@ -69,7 +69,8 @@
 
     async function checkViber(){
       const limit = document.getElementById('patch-size').value
-      const response = await fetch(`https://${EXTERNAL_HOST}:${PORT}/check/viber/start/${limit}`, {method: 'POST'})
+      const delay = document.getElementById('delay-value').value
+      const response = await fetch(`https://${EXTERNAL_HOST}:${PORT}/check/viber/start/${limit}/${delay}`, {method: 'POST'})
       const data = await response.json()
     }
 
@@ -128,6 +129,8 @@
           <h3><span class="fa fa-gear"></span> Проверить номера из файла</h3>
           <div class="form-group">
             <strong>Размера патча</strong><input class="form-control" id="patch-size" value="20">
+            <strong>Задержка в мили секундах(1 сек = 1000 мс)</strong>
+            <input class="form-control" id="delay-value" value="60000">
             <button class="btn btn-primary btn-sm" onclick="checkViber();"> Проверить viber</button><br>
             <span id='viber-all-count'>Количество прочеканых пользователей: 0</span><br>
             <span id='viber-valid-count'>Количество активных пользователей: 0</span><br>

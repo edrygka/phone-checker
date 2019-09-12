@@ -50,9 +50,10 @@ app.get('/', (req, res) => {
 //   res.status(200).end('response')
 // })
 
-app.post('/check/viber/start/:limit', async (req, res) => {
+app.post('/check/viber/start/:limit/:delay', async (req, res) => {
   const checker = fork('./processes/checker.js')
   const limit = req.params.limit
+  const delay = req.params.delay
 
   checker.on('message', msg => {
     console.log('Main thread got from child: ' + msg)
@@ -62,15 +63,17 @@ app.post('/check/viber/start/:limit', async (req, res) => {
     if (msg.indexOf('viber-check-error') !== -1) socket.emit('viber-check-error', msg.substr(18))
   })
 
-  checker.send(`start limit=${limit}`)
+  checker.send(`start limit=${limit} delay=${delay}`)
 })
 
 app.get('/main', (_req, res) => {
   res.sendFile(__dirname + '/views/main.html')
 })
 
-app.get('/files', (req, res) => {
+app.get('/files', async (req, res) => {
   const files = fs.readdirSync(__dirname + '/files')
+  const checkedCount = (await db.query('SELECT COUNT(*) FROM phones WHERE valid IS NOT NULL;')).rows[0].count
+  socket.emit('viber-all-count', checkedCount)
   socket.emit('file-to-parse', files[0])
   const result = files.map((value) => {
     return {
