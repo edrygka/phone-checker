@@ -6,7 +6,7 @@ const sendRequest = require('../request').sendRequest
 process.on('message', async msg => {
   if (msg.indexOf('start') !== -1) {
     console.log('Proccess got start with message: ' + msg)
-    const limit = msg.substr(msg.indexOf('limit') + 6, 1)
+    const limit = msg.substr(msg.indexOf('limit') + 6, 2)
     const delay = msg.substr(msg.indexOf('delay') + 6)
 
     try {
@@ -51,7 +51,6 @@ async function checkViber(limit, delay){
       return process.send(`viber-check-error=${response.status_message}`)
     }
     const checkedCount = (await db.query('SELECT COUNT(*) FROM phones WHERE valid IS NOT NULL;')).rows[0].count
-    console.log(checkedCount)
     process.send(`viber-all-count=${checkedCount}`)
     
     await handleResponse(response)
